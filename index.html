@@ -15,10 +15,19 @@ for(let [x,z] of [[-3,-2.5],[3,-2.5],[-3,2.5],[3,2.5]]){box(1.25,4.2,1.25,stone,
 for(let i=0;i<32;i++){let a=i*2.4,d=10+(i%4)*2,x=Math.cos(a)*d,z=Math.sin(a)*d;cone(.6,1.8,wood,x,.8,z,7);cone(1.1,2,leaf,x,2,z,7);cone(.8,1.5,M(0x347b43),x,2.8,z,7)}
 function house(x,z){box(1.5,1.2,M(0xe2c99a),x,.7,z);cone(1.2,1.2,M(0x9b3d35),x,1.9,z,4)}
 // Small houses use a dedicated correct box geometry
-function buildHouse(x,z){box(1.5,1.25,1.5,M(0xe2c99a),x,.7,z);let q=cone(1.1,1.2,M(0x9b3d35),x,1.9,z,4);q.rotation.y=Math.PI/4}
+</script> buildHouse(x,z){box(1.5,1.25,1.5,M(0xe2c99a),x,.7,z);let q=cone(1.1,1.2,M(0x9b3d35),x,1.9,z,4);q.rotation.y=Math.PI/4}
 let dragon=new THREE.Group();s.add(dragon);let body=new THREE.Mesh(new THREE.SphereGeometry(.62,16,12),blue);body.scale.set(1.5,.8,.8);dragon.add(body);let head=new THREE.Mesh(new THREE.SphereGeometry(.36,14,10),blue);head.position.x=1;dragon.add(head);let tail=cone(.25,1.2,blue,-1.2,0,0,8);dragon.add(tail);tail.rotation.z=Math.PI/2;let wings=[];for(let side of [-1,1]){let g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute([0,0,0,-.2,.1,side*1.8,-.8,.1,side*1.1,.2,.1,side*1.5,.5,.1,side*.4],3));g.setIndex([0,1,2,0,3,4]);g.computeVertexNormals();let w=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:0x0b5d9d,side:THREE.DoubleSide}));dragon.add(w);wings.push(w)}dragon.position.y=7;
 let goldN=100,soldiers=5,dragons=1,houses=0;function update(){document.querySelector('#gold').textContent=goldN;document.querySelector('#soldiers').textContent=soldiers;document.querySelector('#dragons').textContent=dragons}function toast(t){let e=document.querySelector('#toast');e.textContent=t;e.style.display='block';clearTimeout(window.tt);window.tt=setTimeout(()=>e.style.display='none',2000)}
 document.querySelector('#house').onclick=()=>{if(goldN<25)return toast('Ouro insuficiente! Use Magia.');goldN-=25;let p=[[-7,-1],[-7,2],[7,-1],[7,2],[-5,5],[5,5],[0,8]][houses++%7];buildHouse(...p);update();toast('Casa construída!')};document.querySelector('#soldier').onclick=()=>{if(goldN<20)return toast('Ouro insuficiente! Use Magia.');goldN-=20;soldiers++;update();toast('Soldado recrutado!')};document.querySelector('#magic').onclick=()=>{goldN+=30;update();toast('✨ Você ganhou 30 moedas!')};document.querySelector('#dragon').onclick=()=>{if(goldN<50)return toast('Ouro insuficiente! Use Magia.');goldN-=50;dragons++;update();toast('Dragão treinado!')};
 let down=false,lastX=0,lastY=0,rot=0,tilt=.42,dist=24;c.addEventListener('pointerdown',e=>{down=true;lastX=e.clientX;lastY=e.clientY});addEventListener('pointermove',e=>{if(down){rot+=(e.clientX-lastX)*.008;tilt=Math.max(.15,Math.min(1.05,tilt+(e.clientY-lastY)*.005));lastX=e.clientX;lastY=e.clientY}});addEventListener('pointerup',()=>down=false);c.addEventListener('wheel',e=>dist=Math.max(13,Math.min(38,dist+e.deltaY*.025)));
 let clock=new THREE.Clock();function animate(){requestAnimationFrame(animate);let t=clock.getElapsedTime();dragon.position.set(Math.sin(t*.45)*5,7.5+Math.sin(t*1.6)*.6,Math.cos(t*.45)*4);dragon.rotation.y=-t*.45;wings.forEach((w,i)=>w.rotation.x=Math.sin(t*8+i)*.3);let h=dist*Math.cos(tilt);cam.position.set(Math.sin(rot)*h,Math.max(5,dist*Math.sin(tilt)),Math.cos(rot)*h);cam.lookAt(0,2.4,0);r.render(s,cam)}animate();addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();r.setSize(innerWidth,innerHeight)})})();
+<script>
+function salvarReino(dados) {
+  localStorage.setItem('reinosMagicos', JSON.stringify(dados));
+}
+
+function carregarReino() {
+  const dados = localStorage.getItem('reinosMagicos');
+  return dados ? JSON.parse(dados) : null;
+}
 </script></body></html>
