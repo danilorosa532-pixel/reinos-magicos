@@ -1,0 +1,13 @@
+
+{
+  "name": "Reinos Mágicos",
+  "short_name": "Reinos",
+  "description": "Construa seu reino, use magias e treine seu exército.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#07172b",
+  "theme_color": "#07172b",
+  "icons": []
+}
