@@ -1,50 +1,384 @@
-u<!doctype html>
-<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><meta name="theme-color" content="#101a39"><title>Reinos Mágicos — Estratégia 3D</title>
-<style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:system-ui;background:#101a39;color:white}canvas{position:fixed;inset:0;width:100%;height:100%}.panel{background:#111a32dd;border:1px solid #7ea5ff66;border-radius:14px;padding:9px 12px}#top{position:fixed;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;gap:8px;pointer-events:none}h1{font-size:16px;margin:0 0 4px;color:#f5d77b}#actions{position:fixed;left:8px;right:8px;bottom:10px;display:grid;grid-template-columns:repeat(4,1fr);gap:7px}button{min-height:48px;border:1px solid #a9c8ff88;border-radius:12px;background:linear-gradient(#34559a,#1a2d59);color:white;font-weight:700;font-size:12px;padding:5px 2px}#toast{position:fixed;top:100px;left:50%;transform:translateX(-50%);padding:10px 14px;border-radius:12px;background:#111a32ee;border:1px solid #e8cb76;display:none;text-align:center;max-width:90%}@media(min-width:700px){#actions{left:18%;right:18%}}
-</style></head><body>
-<canvas id="scene"></canvas><div id="top"><div class="panel"><h1>🏰 Reinos Mágicos</h1>🪙 Ouro: <b id="gold">100</b><br>🛡️ Soldados: <b id="soldiers">5</b><br>🐉 Dragões: <b id="dragons">1</b><div style="font-size:11px">Arraste para girar a câmera</div></div><div class="panel">REINO DO VALE<br><span style="color:#9fd6ff">Era dos Dragões</span></div></div><div id="toast"></div>
-<div id="actions"><button id="house">🏠 Construir casa (25)</button><button id="soldier">🛡️ Recrutar (20)</button><button id="magic">✨ Magia +30 ouro</button><button id="dragon">🐉 Treinar dragão (50)</button></div>
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script><script>
-(()=>{const c=document.querySelector('canvas');if(!window.THREE){let t=document.querySelector('#toast');t.style.display='block';t.textContent='O 3D precisa de internet. Atualize a página quando estiver conectado.';return}
-const s=new THREE.Scene();s.background=new THREE.Color(0x91c9f2);s.fog=new THREE.Fog(0x91c9f2,35,90);const cam=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,.1,150);const r=new THREE.WebGLRenderer({canvas:c,antialias:true});r.setSize(innerWidth,innerHeight);r.setPixelRatio(Math.min(devicePixelRatio,2));r.shadowMap.enabled=true;s.add(new THREE.HemisphereLight(0xd8edff,0x47623a,2));let sun=new THREE.DirectionalLight(0xffefca,2.5);sun.position.set(-10,20,12);sun.castShadow=true;s.add(sun);
-const M=(color)=>new THREE.MeshStandardMaterial({color,roughness:.8});const stone=M(0xaab0bb),roof=M(0x244fbd),gold=M(0xf1c65d),wood=M(0x754528),grass=M(0x4b914d),leaf=M(0x24613c),blue=M(0x168fdb);
-function box(w,h,d,m,x,y,z){let o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;s.add(o);return o}function cone(a,h,m,x,y,z,n=5){let o=new THREE.Mesh(new THREE.ConeGeometry(a,h,n),m);o.position.set(x,y,z);o.castShadow=true;s.add(o);return o}
-let ground=new THREE.Mesh(new THREE.PlaneGeometry(120,120),grass);ground.rotation.x=-Math.PI/2;ground.position.y=-.1;ground.receiveShadow=true;s.add(ground);box(8,.7,7,stone,0,.25,0);box(4.8,4,4.2,stone,0,2.8,0);box(5.4,.25,4.8,gold,0,4.95,0);box(.65,1.5,.2,wood,0,1.55,2.13);
-for(let [x,z] of [[-3,-2.5],[3,-2.5],[-3,2.5],[3,2.5]]){box(1.25,4.2,1.25,stone,x,2.8,z);cone(.95,2,roof,x,5.9,z,4);box(.15,.8,.15,gold,x,6.95,z)}cone(2.5,2.5,roof,0,6.3,0,4);
-for(let i=0;i<32;i++){let a=i*2.4,d=10+(i%4)*2,x=Math.cos(a)*d,z=Math.sin(a)*d;cone(.6,1.8,wood,x,.8,z,7);cone(1.1,2,leaf,x,2,z,7);cone(.8,1.5,M(0x347b43),x,2.8,z,7)}
-function house(x,z){box(1.5,1.2,M(0xe2c99a),x,.7,z);cone(1.2,1.2,M(0x9b3d35),x,1.9,z,4)}
-// Small houses use a dedicated correct box geometry
-</script> buildHouse(x,z){box(1.5,1.25,1.5,M(0xe2c99a),x,.7,z);let q=cone(1.1,1.2,M(0x9b3d35),x,1.9,z,4);q.rotation.y=Math.PI/4}
-let dragon=new THREE.Group();s.add(dragon);let body=new THREE.Mesh(new THREE.SphereGeometry(.62,16,12),blue);body.scale.set(1.5,.8,.8);dragon.add(body);let head=new THREE.Mesh(new THREE.SphereGeometry(.36,14,10),blue);head.position.x=1;dragon.add(head);let tail=cone(.25,1.2,blue,-1.2,0,0,8);dragon.add(tail);tail.rotation.z=Math.PI/2;let wings=[];for(let side of [-1,1]){let g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute([0,0,0,-.2,.1,side*1.8,-.8,.1,side*1.1,.2,.1,side*1.5,.5,.1,side*.4],3));g.setIndex([0,1,2,0,3,4]);g.computeVertexNormals();let w=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:0x0b5d9d,side:THREE.DoubleSide}));dragon.add(w);wings.push(w)}dragon.position.y=7;
-let goldN=100,soldiers=5,dragons=1,houses=0;function update(){document.querySelector('#gold').textContent=goldN;document.querySelector('#soldiers').textContent=soldiers;document.querySelector('#dragons').textContent=dragons}function toast(t){let e=document.querySelector('#toast');e.textContent=t;e.style.display='block';clearTimeout(window.tt);window.tt=setTimeout(()=>e.style.display='none',2000)}
-document.querySelector('#house').onclick=()=>{if(goldN<25)return toast('Ouro insuficiente! Use Magia.');goldN-=25;let p=[[-7,-1],[-7,2],[7,-1],[7,2],[-5,5],[5,5],[0,8]][houses++%7];buildHouse(...p);update();toast('Casa construída!')};document.querySelector('#soldier').onclick=()=>{if(goldN<20)return toast('Ouro insuficiente! Use Magia.');goldN-=20;soldiers++;update();toast('Soldado recrutado!')};document.querySelector('#magic').onclick=()=>{goldN+=30;update();toast('✨ Você ganhou 30 moedas!')};document.querySelector('#dragon').onclick=()=>{if(goldN<50)return toast('Ouro insuficiente! Use Magia.');goldN-=50;dragons++;update();toast('Dragão treinado!')};
-let down=false,lastX=0,lastY=0,rot=0,tilt=.42,dist=24;c.addEventListener('pointerdown',e=>{down=true;lastX=e.clientX;lastY=e.clientY});addEventListener('pointermove',e=>{if(down){rot+=(e.clientX-lastX)*.008;tilt=Math.max(.15,Math.min(1.05,tilt+(e.clientY-lastY)*.005));lastX=e.clientX;lastY=e.clientY}});addEventListener('pointerup',()=>down=false);c.addEventListener('wheel',e=>dist=Math.max(13,Math.min(38,dist+e.deltaY*.025)));
-;<script>
-function salvarReino() {
-  localStorage.setItem('reinosMagicos', JSON.stringify({
-    ouro: goldN,
-    soldados: soldiers,
-    dragoes: dragons,
-    casas: houses
-  }));
-}
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Reino Medieval 3D - Construção e Estratégia</title>
 
-function carregarReino() {
-  try {
-    const dados = JSON.parse(localStorage.getItem('reinosMagicos'));
-    if (!dados) return;
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Three.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=MedievalSharp&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    goldN = dados.ouro ?? goldN;
-    soldiers = dados.soldados ?? soldiers;
-    dragons = dados.dragoes ?? dragons;
-    houses = dados.casas ?? houses;
+    <style>
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            touch-action: manipulation;
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #0b0f19;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .fonte-medieval {
+            font-family: 'Cinzel', serif;
+        }
+        .painel-pergaminho {
+            background: linear-gradient(135deg, rgba(38, 26, 15, 0.94), rgba(20, 14, 8, 0.97));
+            border: 2px solid #96743e;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.8), 0 8px 32px rgba(0,0,0,0.7);
+        }
+        .cartao-pergaminho {
+            background: rgba(48, 35, 22, 0.88);
+            border: 1px solid #aa8344;
+        }
+        .btn-dourado {
+            background: linear-gradient(180deg, #d4af37 0%, #a87b10 100%);
+            border: 1px solid #f8ebbe;
+            color: #1a0f00;
+            text-shadow: 0px 1px 0px rgba(255,255,255,0.4);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+        .btn-dourado:active {
+            transform: translateY(1px);
+            background: linear-gradient(180deg, #a87b10 0%, #886008 100%);
+        }
+        .btn-vermelho {
+            background: linear-gradient(180deg, #b22222 0%, #781212 100%);
+            border: 1px solid #ff7f7f;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(20, 14, 8, 0.5);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #96743e;
+            border-radius: 3px;
+        }
+        
+        .texto-flutuante {
+            position: absolute;
+            pointer-events: none;
+            font-weight: 800;
+            font-family: 'Cinzel', serif;
+            animation: flutuarSubindo 1.2s ease-out forwards;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.9);
+            z-index: 50;
+        }
+        @keyframes flutuarSubindo {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            50% { transform: translateY(-30px) scale(1.1); }
+            100% { opacity: 0; transform: translateY(-60px) scale(0.9); }
+        }
 
-    update();
-  } catch (e) {
-    console.log('Não foi possível carregar o reino.');
-  }
-}
+        #canvas-jogo {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
 
-carregarReino();
-</script>
+        /* Canvas do Mini-mapa */
+        #minimap-canvas {
+            width: 100px;
+            height: 100px;
+            border: 2px solid #8b6d3a;
+            border-radius: 50%;
+            background: rgba(15, 23, 10, 0.85);
+        }
+    </style>
+</head>
+<body class="select-none text-amber-100">
+
+    <!-- Renderizador 3D -->
+    <div id="canvas-container" class="relative w-full h-full">
+        <canvas id="canvas-jogo"></canvas>
+    </div>
+
+    <!-- HUD Interface Superior (Barra de Recursos) -->
+    <div class="fixed top-0 left-0 right-0 p-2 sm:p-3 pointer-events-none z-20">
+        <div class="max-w-5xl mx-auto painel-pergaminho rounded-xl p-2 sm:p-3 pointer-events-auto flex items-center justify-between shadow-2xl backdrop-blur-md">
+            <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5 sm:gap-3 w-full text-xs sm:text-sm font-semibold">
+                <!-- Ouro -->
+                <div class="flex items-center space-x-1.5 bg-black/50 px-2 py-1 rounded-lg border border-amber-900/60">
+                    <i class="fa-solid fa-coins text-amber-400 text-sm"></i>
+                    <div>
+                        <div class="text-[9px] sm:text-[10px] text-amber-400/80 leading-none">Ouro</div>
+                        <span id="res-ouro">300</span>
+                    </div>
+                </div>
+                <!-- Madeira -->
+                <div class="flex items-center space-x-1.5 bg-black/50 px-2 py-1 rounded-lg border border-amber-900/60">
+                    <i class="fa-solid fa-tree text-emerald-500 text-sm"></i>
+                    <div>
+                        <div class="text-[9px] sm:text-[10px] text-emerald-400/80 leading-none">Madeira</div>
+                        <span id="res-madeira">250</span>
+                    </div>
+                </div>
+                <!-- Comida -->
+                <div class="flex items-center space-x-1.5 bg-black/50 px-2 py-1 rounded-lg border border-amber-900/60">
+                    <i class="fa-solid fa-wheat-awn text-yellow-500 text-sm"></i>
+                    <div>
+                        <div class="text-[9px] sm:text-[10px] text-yellow-400/80 leading-none">Comida</div>
+                        <span id="res-comida">180</span>
+                    </div>
+                </div>
+                <!-- Pedra -->
+                <div class="flex items-center space-x-1.5 bg-black/50 px-2 py-1 rounded-lg border border-amber-900/60">
+                    <i class="fa-solid fa-cubes text-slate-300 text-sm"></i>
+                    <div>
+                        <div class="text-[9px] sm:text-[10px] text-slate-300/80 leading-none">Pedra</div>
+                        <span id="res-pedra">120</span>
+                    </div>
+                </div>
+                <!-- População -->
+                <div class="flex items-center space-x-1.5 bg-black/50 px-2 py-1 rounded-lg border border-amber-900/60">
+                    <i class="fa-solid fa-users text-blue-400 text-sm"></i>
+                    <div>
+                        <div class="text-[9px] sm:text-[10px] text-blue-300/80 leading-none">População</div>
+                        <span id="res-pop">0/10</span>
+                    </div>
+                </div>
+                <!-- Tropas -->
+                <div class="flex items-center space-x-1.5 bg-black/50 px-2 py-1 rounded-lg border border-amber-900/60">
+                    <i class="fa-solid fa-shield-halved text-red-400 text-sm"></i>
+                    <div>
+                        <div class="text-[9px] sm:text-[10px] text-red-300/80 leading-none">Exército</div>
+                        <span id="res-tropas">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barra de Controles de Construção Ativa -->
+    <div id="barra-posicionamento" class="fixed top-20 left-1/2 -translate-x-1/2 z-30 hidden">
+        <div class="painel-pergaminho px-4 py-2 rounded-full flex items-center space-x-3 border border-amber-500 shadow-xl">
+            <span id="titulo-posicionar" class="text-xs font-bold fonte-medieval text-amber-200">Posicionando Construção</span>
+            <button id="btn-rotacionar" class="btn-dourado px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                <i class="fa-solid fa-rotate-right"></i> Rodar
+            </button>
+            <button id="btn-confirmar-construcao" class="btn-dourado px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                <i class="fa-solid fa-check"></i> Construir
+            </button>
+            <button id="btn-cancelar-construcao" class="btn-vermelho px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                <i class="fa-solid fa-xmark"></i> Cancelar
+            </button>
+        </div>
+    </div>
+
+    <!-- Alerta de Evento / Invasão -->
+    <div id="banner-evento" class="fixed top-24 left-1/2 -translate-x-1/2 z-20 pointer-events-none transition-all duration-500 opacity-0 transform -translate-y-4">
+        <div class="bg-red-950/90 border-2 border-red-600 px-6 py-2 rounded-xl text-center shadow-2xl backdrop-blur">
+            <div class="text-xs text-red-300 tracking-widest font-bold uppercase">Alerta de Invasão</div>
+            <div id="titulo-evento" class="text-lg font-extrabold fonte-medieval text-red-100">ONDA DE INIMIGOS APROXIMANDO-SE!</div>
+        </div>
+    </div>
+
+    <!-- Botões Rápidos e Utilitários -->
+    <div class="fixed top-20 right-3 z-10 flex flex-col gap-2">
+        <button id="btn-audio" class="w-10 h-10 rounded-full painel-pergaminho flex items-center justify-center text-amber-300 border border-amber-600/60 shadow-lg active:scale-95">
+            <i class="fa-solid fa-volume-high text-sm"></i>
+        </button>
+        <button id="btn-tempo" class="w-10 h-10 rounded-full painel-pergaminho flex items-center justify-center text-amber-300 border border-amber-600/60 shadow-lg active:scale-95">
+            <i class="fa-solid fa-sun text-sm"></i>
+        </button>
+        <!-- Mini-mapa -->
+        <div class="hidden sm:block mt-1">
+            <canvas id="minimap-canvas"></canvas>
+        </div>
+    </div>
+
+    <!-- Quadro de Missões do Reino -->
+    <div class="fixed top-20 left-3 z-10 max-w-[210px] sm:max-w-xs pointer-events-auto">
+        <div class="painel-pergaminho rounded-xl p-2.5 text-xs border border-amber-700/70 shadow-lg">
+            <div class="flex justify-between items-center mb-1 pb-1 border-b border-amber-800/60 font-bold text-amber-300 fonte-medieval">
+                <span><i class="fa-solid fa-scroll text-amber-500 mr-1"></i> Missão do Reino</span>
+            </div>
+            <div id="desc-missao" class="text-amber-100/90 leading-tight">Construa uma Serraria para coletar madeira para o reino.</div>
+            <div class="mt-2 flex justify-between items-center">
+                <span id="recompensa-missao" class="text-[10px] text-amber-400 font-semibold"><i class="fa-solid fa-gift"></i> +100 Ouro</span>
+                <button id="btn-resgatar-missao" class="hidden btn-dourado px-2 py-0.5 rounded text-[10px] font-bold animate-pulse">
+                    Resgatar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Painel Inspetor de Objeto Selecionado -->
+    <div id="cartao-inspetor" class="fixed bottom-20 left-4 right-4 max-w-sm mx-auto painel-pergaminho rounded-xl p-3 z-20 hidden shadow-2xl border border-amber-500">
+        <div class="flex justify-between items-start">
+            <div>
+                <h3 id="inspect-titulo" class="font-bold text-base fonte-medieval text-amber-300">Nome da Estrutura</h3>
+                <p id="inspect-sub" class="text-xs text-amber-200/70">Edifício Nível 1</p>
+            </div>
+            <button id="inspect-fechar" class="text-amber-400 hover:text-white p-1">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+        <div class="mt-2 text-xs space-y-1">
+            <div class="flex justify-between">
+                <span class="text-amber-200/60">Vida:</span>
+                <span id="inspect-hp" class="font-bold text-emerald-400">100/100</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-amber-200/60">Produção:</span>
+                <span id="inspect-taxa" class="font-semibold text-amber-200">+5 Madeira / 5s</span>
+            </div>
+        </div>
+        <div class="mt-3 flex gap-2">
+            <button id="btn-melhorar-edificio" class="flex-1 btn-dourado py-1.5 rounded-lg text-xs font-bold flex justify-center items-center gap-1">
+                <i class="fa-solid fa-arrow-up"></i> Melhorar (<span id="custo-melhoria">60 Ouro</span>)
+            </button>
+        </div>
+    </div>
+
+    <!-- Navegação Inferior Principal -->
+    <div class="fixed bottom-0 left-0 right-0 p-2 z-20">
+        <div class="max-w-md mx-auto painel-pergaminho rounded-2xl p-1.5 flex justify-around items-center border border-amber-600/70 shadow-2xl">
+            <button id="nav-construir" class="flex flex-col items-center justify-center w-16 py-1.5 rounded-xl text-amber-300 hover:bg-amber-900/40 active:scale-95 transition-all">
+                <i class="fa-solid fa-hammer text-lg mb-0.5"></i>
+                <span class="text-[10px] font-semibold">Construir</span>
+            </button>
+            <button id="nav-recrutar" class="flex flex-col items-center justify-center w-16 py-1.5 rounded-xl text-amber-300 hover:bg-amber-900/40 active:scale-95 transition-all">
+                <i class="fa-solid fa-person-military-rifle text-lg mb-0.5"></i>
+                <span class="text-[10px] font-semibold">Exército</span>
+            </button>
+            <button id="nav-combate" class="flex flex-col items-center justify-center w-16 py-1.5 rounded-xl text-red-400 hover:bg-red-950/40 active:scale-95 transition-all">
+                <i class="fa-solid fa-skull text-lg mb-0.5"></i>
+                <span class="text-[10px] font-semibold">Iniciar Onda</span>
+            </button>
+            <button id="nav-reino" class="flex flex-col items-center justify-center w-16 py-1.5 rounded-xl text-amber-300 hover:bg-amber-900/40 active:scale-95 transition-all">
+                <i class="fa-solid fa-crown text-lg mb-0.5"></i>
+                <span class="text-[10px] font-semibold">Reino</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Janelas do Jogo -->
+    <div id="modal-container" class="fixed inset-0 bg-black/80 z-40 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        
+        <!-- MODAL MENU DE CONSTRUÇÃO -->
+        <div id="modal-construir" class="painel-pergaminho rounded-2xl max-w-lg w-full max-h-[80vh] flex flex-col p-4 shadow-2xl border-2 border-amber-600 hidden">
+            <div class="flex justify-between items-center pb-3 border-b border-amber-800">
+                <h2 class="text-lg font-bold fonte-medieval text-amber-300 flex items-center gap-2">
+                    <i class="fa-solid fa-hammer text-amber-500"></i> Menu de Construção
+                </h2>
+                <button class="btn-fechar-modal text-amber-400 hover:text-white text-xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div class="overflow-y-auto flex-1 my-3 pr-1 space-y-3" id="lista-construcoes">
+                <!-- Opções de edifícios inseridas dinamicamente -->
+            </div>
+        </div>
+
+        <!-- MODAL DE RECRUTAMENTO MILITAR -->
+        <div id="modal-recrutar" class="painel-pergaminho rounded-2xl max-w-lg w-full max-h-[80vh] flex flex-col p-4 shadow-2xl border-2 border-amber-600 hidden">
+            <div class="flex justify-between items-center pb-3 border-b border-amber-800">
+                <h2 class="text-lg font-bold fonte-medieval text-amber-300 flex items-center gap-2">
+                    <i class="fa-solid fa-shield-halved text-amber-500"></i> Quartel de Tropas
+                </h2>
+                <button class="btn-fechar-modal text-amber-400 hover:text-white text-xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div class="overflow-y-auto flex-1 my-3 pr-1 space-y-3" id="lista-recrutamento">
+                <!-- Unidades de combate inseridas dinamicamente -->
+            </div>
+        </div>
+
+        <!-- MODAL VISÃO GERAL DO REINO -->
+        <div id="modal-reino" class="painel-pergaminho rounded-2xl max-w-lg w-full max-h-[80vh] flex flex-col p-4 shadow-2xl border-2 border-amber-600 hidden">
+            <div class="flex justify-between items-center pb-3 border-b border-amber-800">
+                <h2 class="text-lg font-bold fonte-medieval text-amber-300 flex items-center gap-2">
+                    <i class="fa-solid fa-crown text-amber-500"></i> Visão Geral do Reino
+                </h2>
+                <button class="btn-fechar-modal text-amber-400 hover:text-white text-xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div class="overflow-y-auto flex-1 my-3 space-y-4 text-sm">
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="cartao-pergaminho p-3 rounded-xl border border-amber-700/60">
+                        <div class="text-xs text-amber-400/80">Nível do Reino</div>
+                        <div class="text-lg font-bold fonte-medieval text-amber-200" id="stat-nivel-reino">Ducado Nível 1</div>
+                    </div>
+                    <div class="cartao-pergaminho p-3 rounded-xl border border-amber-700/60">
+                        <div class="text-xs text-amber-400/80">Ondas Derrotadas</div>
+                        <div class="text-lg font-bold fonte-medieval text-amber-200" id="stat-contagem-ondas">Onda 0</div>
+                    </div>
+                </div>
+
+                <div class="cartao-pergaminho p-3 rounded-xl border border-amber-700/60 space-y-2">
+                    <div class="font-bold text-amber-300 border-b border-amber-800/60 pb-1">Taxa de Produção Automática</div>
+                    <div class="flex justify-between text-xs"><span>Ouro:</span> <span class="text-amber-400 font-bold" id="renda-ouro">+0 / 5s</span></div>
+                    <div class="flex justify-between text-xs"><span>Madeira:</span> <span class="text-emerald-400 font-bold" id="renda-madeira">+0 / 5s</span></div>
+                    <div class="flex justify-between text-xs"><span>Comida:</span> <span class="text-yellow-400 font-bold" id="renda-comida">+0 / 5s</span></div>
+                    <div class="flex justify-between text-xs"><span>Pedra:</span> <span class="text-slate-300 font-bold" id="renda-pedra">+0 / 5s</span></div>
+                </div>
+
+                <div class="pt-2 flex justify-between gap-3">
+                    <button id="btn-salvar-jogo" class="flex-1 btn-dourado py-2 rounded-xl text-xs font-bold">
+                        <i class="fa-solid fa-floppy-disk mr-1"></i> Salvar Progresso
+                    </button>
+                    <button id="btn-resetar-jogo" class="btn-vermelho px-4 py-2 rounded-xl text-xs font-bold">
+                        Reiniciar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Script Principal de Áudio, Lógica 3D e Interface em Português -->
+    <script>
+        /* --- SINTETIZADOR DE ÁUDIO WEB AUDIO API --- */
+        class MotorAudio {
+            constructor() {
+                this.ctx = null;
+                this.desativado = false;
+            }
+            iniciar() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+            }
+            somMoeda() {
+                if (this.desativado || !this.ctx) return;
+                const agora = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const ganho = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(987.77, agora); // B5
+                osc.frequency.setValueAtTime(1318.51, agora + 0.08); // E6
+                ganho.ganho.setValueAtTime(0.15, agora);
+                ganho.ganho.exponentialRampToValueAtTime(0.001, agora + 0.3);
+                osc.connect(ganho);
+                ganho.connect(this.ctx.destination);
+                osc.start(agora);
+                osc.stop(agora + 0.3);
+            }
+            somConstrucao() {
+      
